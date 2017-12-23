@@ -1,15 +1,15 @@
 ---
-layout: page
 title: About
-permalink: /about/
+layout: page
+permalink: "/about/"
 ---
 
-Some information about you!
+Master student of Embedded Systems Engineering in Albert-Ludwigs Universität Freiburg
 
 ### More Information
 
-A place to include any other types of information that you'd like to include about yourself.
+Please contact me per email for more information.
 
 ### Contact me
 
-[email@domain.com](mailto:email@domain.com)
+[ferdinand.phan.ee@gmail.com](mailto:ferdinand.phan.ee@gmail.com)
