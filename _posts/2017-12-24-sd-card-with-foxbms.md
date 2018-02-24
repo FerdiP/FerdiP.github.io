@@ -16,7 +16,7 @@ The version of foxBMS's embedded software I am using is NOT the newest version-1
 3/ A running foxBMS project on Eclipse. Debugging with Eclipse is not important, because I got problems while using Eclipse under Debug mode. So, it must only compile and generate ".hex" file.
 
 ## [Getting Start]
-
+![Fig1: Connections at SD Card module on BMS Extension board](https://github.com/FerdiP/FerdiP.github.io/blob/master/images/2017-12-24-sd-card-with-foxbms/SD_Card_Schematic.png)
 
 ## [Programming]
 1/ Naviagate to "../foxBMS_primary/src/module/" . Create a new folder: sdcard.
