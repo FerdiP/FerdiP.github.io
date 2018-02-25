@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.6.2">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2018-02-25T20:24:15+01:00</updated><id>http://localhost:4000/</id><title type="html">Duc-Duy Phan</title><subtitle>Embedded Systems Engineering Student</subtitle><entry><title type="html">SD Card with foxBMS</title><link href="http://localhost:4000/sd-card-with-foxbms/" rel="alternate" type="text/html" title="SD Card with foxBMS" /><published>2017-12-24T00:00:00+01:00</published><updated>2017-12-24T00:00:00+01:00</updated><id>http://localhost:4000/sd-card-with-foxbms</id><content type="html" xml:base="http://localhost:4000/sd-card-with-foxbms/">&lt;p&gt;An SD Card female connector is available on foxBMS Extension board. It is therefore, available for us to store and read some data under, such as, text files, csv files. In the range of this post, I firstly programm the SD card as a &lt;strong&gt;module&lt;/strong&gt; in src for primary MCU. Then, in the second part, I will create a task to write and read data in text file. Let’s begin this task by several preparations!&lt;/p&gt;
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.6.2">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2018-02-25T21:44:10+01:00</updated><id>http://localhost:4000/</id><title type="html">Duc-Duy Phan</title><subtitle>Embedded Systems Engineering Student</subtitle><entry><title type="html">SD Card with foxBMS</title><link href="http://localhost:4000/sd-card-with-foxbms/" rel="alternate" type="text/html" title="SD Card with foxBMS" /><published>2017-12-24T00:00:00+01:00</published><updated>2017-12-24T00:00:00+01:00</updated><id>http://localhost:4000/sd-card-with-foxbms</id><content type="html" xml:base="http://localhost:4000/sd-card-with-foxbms/">&lt;p&gt;An SD Card female connector is available on foxBMS Extension board. It is therefore, available for us to store and read some data under, such as, text files, csv files. In the range of this post, I firstly programm the SD card as a &lt;strong&gt;module&lt;/strong&gt; in src for primary MCU. Then, in the second part, I will create a task to write and read data in text file. Let’s begin this task by several preparations!&lt;/p&gt;
 
 &lt;h3 id=&quot;notices&quot;&gt;Notices&lt;/h3&gt;
 &lt;p&gt;The version of foxBMS’s embedded software I am using is NOT the newest version-1.0.0. There might needed changes, but I hope that the following jobs can be integrated easily into the newest software version.&lt;/p&gt;
@@ -11,7 +11,7 @@
 &lt;p&gt;3/ A running foxBMS project on Eclipse. Debugging with Eclipse is not important, because I got problems while using Eclipse under Debug mode. So, it must only compile and generate “.hex” file.&lt;/p&gt;
 
 &lt;h2 id=&quot;getting-start&quot;&gt;[Getting Start]&lt;/h2&gt;
-&lt;p&gt;The foxBMS communicates with SD card through SPI6 perripheral, which is also shared for EEPROM module. Therefore, each time reading and writing to SD card, users must check whether the EEPROM is deployed or not. Moreover, the SD Card is by default not deployed by the program, i.e, not powered. An output low on SDCARD_SUPPLY_CONTROL will let the card turn on for functions.&lt;/p&gt;
+&lt;p&gt;The foxBMS communicates with SD card through SPI6 perripheral, which is also shared for EEPROM module. Therefore, each time reading and writing to SD card, users must check whether the EEPROM is deployed or not. Moreover, the SD Card is by default not deployed by the program, i.e, not powered. An output low on SDCARD_SUPPLY_CONTROL lets the card turn on for functions.&lt;/p&gt;
 
 &lt;p&gt;&lt;img src=&quot;../images/2017-12-24-sd-card-with-foxbms/SD_Card_Schematic.png&quot; alt=&quot;Fig1&quot; class=&quot;img-responsive&quot; /&gt;
 &lt;em&gt;Figure 1: Connections at SD Card module on BMS Extension board.&lt;/em&gt;&lt;/p&gt;
@@ -43,8 +43,146 @@
 
 &lt;p&gt;“#define FF_FS_LOCK	10”: Allow us to open upto 10 files simutaneously.&lt;/p&gt;
 
-&lt;p&gt;4/&lt;/p&gt;
-&lt;h2 id=&quot;running&quot;&gt;[Running]&lt;/h2&gt;</content><author><name></name></author><summary type="html">An SD Card female connector is available on foxBMS Extension board. It is therefore, available for us to store and read some data under, such as, text files, csv files. In the range of this post, I firstly programm the SD card as a module in src for primary MCU. Then, in the second part, I will create a task to write and read data in text file. Let’s begin this task by several preparations!</summary></entry><entry><title type="html">Setting up BMS Primary on Eclipse C/C++</title><link href="http://localhost:4000/setting-up-bms-primary-on-eclipse-c-c/" rel="alternate" type="text/html" title="Setting up BMS Primary on Eclipse C/C++" /><published>2017-12-23T00:00:00+01:00</published><updated>2017-12-23T00:00:00+01:00</updated><id>http://localhost:4000/setting-up-bms-primary-on-eclipse-c-c</id><content type="html" xml:base="http://localhost:4000/setting-up-bms-primary-on-eclipse-c-c/">&lt;p&gt;Although the foxBMS comes with foxConda, which is a graphic interface for configurations, it is not available for developers to add further features to the system. In the following, I will go through the step to get foxBMS running on a free IDE for embedded systems - Eclipse. There are many others IDE that we can use, such as Keil, or Visual Studio but they are either restricted or not free. So, the reason to use Eclipse is clear: developers have a free, open IDE and compatible with foxConda.&lt;/p&gt;
+&lt;p&gt;4/ Since &lt;a href=&quot;http://elm-chan.org/fsw/ff/00index_e.html&quot;&gt;FatFs&lt;/a&gt; is “completely separated from the disk I/O layer”, it does not include the SPI communication, which allow the primary MCU to read or write, bit per bit, to the card. The object in this step is, therefore, to implement such this low-level layer, in &lt;strong&gt;diskio.c&lt;/strong&gt; file. I prefer to write my own functions, because the given sample uses MCU’s Timer taking care of the delay, but actually, I do not have any timer left.&lt;/p&gt;
+
+&lt;p&gt;Let’s talk about the structure of &lt;strong&gt;diskio.c&lt;/strong&gt; for a better understanding. There are five critical functions that must always exist:&lt;/p&gt;
+
+&lt;p&gt;DSTATUS disk_initialize (BYTE pdrv);&lt;/p&gt;
+
+&lt;p&gt;DSTATUS disk_status (BYTE pdrv);&lt;/p&gt;
+
+&lt;p&gt;DRESULT disk_read (BYTE pdrv, BYTE* buff, DWORD sector, UINT count);&lt;/p&gt;
+
+&lt;p&gt;DRESULT disk_write (BYTE pdrv, const BYTE* buff, DWORD sector, UINT count);&lt;/p&gt;
+
+&lt;p&gt;DRESULT disk_ioctl (BYTE pdrv, BYTE cmd, void* buff);&lt;/p&gt;
+
+&lt;p&gt;Rest of the file are some deffinitions and static functions.&lt;/p&gt;
+
+&lt;p&gt;I will start writing with a blank &lt;strong&gt;diskio.c&lt;/strong&gt;. Firstly, I need some headers and deffinitions.&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;#include &quot;general.h&quot;
+#include &quot;uart.h&quot;
+#include &quot;spi_cfg.h&quot;
+#include &quot;diskio.h&quot;		/* FatFs lower layer API */
+#include &quot;ff.h&quot;
+#include &quot;string.h&quot;
+
+
+/* Definitions of physical drive number for each media */
+#define ATA		0
+#define USB		1
+#define SDRAM      	2
+#define SPI_FLASH  	3
+
+/* MMC/SD command */
+#define CMD0	(0)			/* GO_IDLE_STATE */
+#define CMD1	(1)			/* SEND_OP_COND (MMC) */
+#define	ACMD41	(0x80+41)	/* SEND_OP_COND (SDC) */
+#define CMD8	(8)			/* SEND_IF_COND */
+#define CMD9	(9)			/* SEND_CSD */
+#define CMD10	(10)		/* SEND_CID */
+#define CMD12	(12)		/* STOP_TRANSMISSION */
+#define ACMD13	(0x80+13)	/* SD_STATUS (SDC) */
+#define CMD16	(16)		/* SET_BLOCKLEN */
+#define CMD17	(17)		/* READ_SINGLE_BLOCK */
+#define CMD18	(18)		/* READ_MULTIPLE_BLOCK */
+#define CMD23	(23)		/* SET_BLOCK_COUNT (MMC) */
+#define	ACMD23	(0x80+23)	/* SET_WR_BLK_ERASE_COUNT (SDC) */
+#define CMD24	(24)		/* WRITE_BLOCK */
+#define CMD25	(25)		/* WRITE_MULTIPLE_BLOCK */
+#define CMD32	(32)		/* ERASE_ER_BLK_START */
+#define CMD33	(33)		/* ERASE_ER_BLK_END */
+#define CMD38	(38)		/* ERASE */
+#define CMD55	(55)		/* APP_CMD */
+#define CMD58	(58)		/* READ_OCR */
+
+/* Declare private variables */
+static volatile DSTATUS stt = STA_NOINIT;
+
+static BYTE CardType;			/* Card type flags */
+
+uint8_t dumm=0xFF;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Next, checking the power supply to SD card and SPI is free from EEPROM or not.&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;static uint8_t SD_Enabled(void) {
+	if(IO_ReadPin(IO_PIN_MCU_0_SDCARD_SUPPLY_CONTROL)==GPIO_PIN_RESET) return 1;				//Return 1 if pin is low, meaning that sd card is powered.
+	else return 0;
+}
+
+static uint8_t SPI_free(void){
+	if(IO_ReadPin(IO_PIN_MCU_0_DATA_STORAGE_EEPROM_SPI_NSS)==GPIO_PIN_RESET) return 0;				//Return 0 = &quot;not ready&quot; if CS for EEPROM is low
+	else return 1;
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Chip Select(CS) is of course needed.&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;/* Set CS Pin low or high */
+static void CS_LOW(void){
+	IO_WritePin(IO_PIN_MCU_0_DATA_STORAGE_SCCARD_SPI_NSS,IO_PIN_RESET);
+}
+static void CS_HIGH(void){
+	IO_WritePin(IO_PIN_MCU_0_DATA_STORAGE_SCCARD_SPI_NSS,IO_PIN_SET);
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;The first brick to build “Fat_fox” home:&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;/* Send single byte */
+static BYTE xchg_spi(BYTE Byte){
+	BYTE receivedbyte = 0;
+	if(HAL_SPI_TransmitReceive(&amp;amp;spi_devices[1],(uint8_t*) &amp;amp;Byte,(uint8_t*) &amp;amp;receivedbyte,1,0x1000)!=HAL_OK)
+	{
+		HAL_UART_Transmit(&amp;amp;uart_cfg[0],(uint8_t *)&quot;error_txrx\r\n&quot;,12,0x100);
+	}
+	return receivedbyte;
+}
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;…and the first walls:&lt;/p&gt;
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;/* Receive multiple byte */
+static void rcvr_spi_multi (
+		BYTE *buff,		/* Pointer to data buffer */
+		UINT btr		/* Number of bytes to receive (even number) */
+)
+{
+	/* Read multiple bytes, send 0xFF as dummy */
+	int cnt;
+	for (cnt=0;cnt&amp;lt;btr;cnt++) buff[cnt] = xchg_spi(0xFF);
+}
+
+#if _USE_WRITE
+/* Send multiple byte */
+static void xmit_spi_multi (
+		const BYTE *buff,	/* Pointer to the data */
+		UINT btx			/* Number of bytes to send (even number) */
+)
+{
+	/* Write multiple bytes */
+	HAL_SPI_Transmit(&amp;amp;spi_devices[1],(uint8_t *)buff,btx,0x100);
+}
+#endif
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;The next important functions, which I believe that you can programm yourself, are as below. In this blog, I would not post them all because of Copy Right issue that I mentioned above. I would like to give some hints and wish you success.&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;Instead of using Timer, I just declared a variable, said “timer”, to a certain value, and decreased it to create a loop or delay.&lt;/li&gt;
+  &lt;li&gt;&lt;strong&gt;deselect&lt;/strong&gt; and &lt;strong&gt;select&lt;/strong&gt; might be used by orther library, so I recommend to rename to &lt;strong&gt;SDdeselect&lt;/strong&gt; and &lt;strong&gt;SDselect&lt;/strong&gt;.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;static void deselect(void); 
+
+static int select(void);
+
+static int rcvr_datablock (	BYTE *buff,  UINT btr);
+
+static int xmit_datablock (	const BYTE *buff,		BYTE token);
+
+static BYTE send_cmd (	BYTE cmd,	DWORD arg	);
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h2 id=&quot;running&quot;&gt;[Running]&lt;/h2&gt;
+
+&lt;h3 id=&quot;references&quot;&gt;References&lt;/h3&gt;</content><author><name></name></author><summary type="html">An SD Card female connector is available on foxBMS Extension board. It is therefore, available for us to store and read some data under, such as, text files, csv files. In the range of this post, I firstly programm the SD card as a module in src for primary MCU. Then, in the second part, I will create a task to write and read data in text file. Let’s begin this task by several preparations!</summary></entry><entry><title type="html">Setting up BMS Primary on Eclipse C/C++</title><link href="http://localhost:4000/setting-up-bms-primary-on-eclipse-c-c/" rel="alternate" type="text/html" title="Setting up BMS Primary on Eclipse C/C++" /><published>2017-12-23T00:00:00+01:00</published><updated>2017-12-23T00:00:00+01:00</updated><id>http://localhost:4000/setting-up-bms-primary-on-eclipse-c-c</id><content type="html" xml:base="http://localhost:4000/setting-up-bms-primary-on-eclipse-c-c/">&lt;p&gt;Although the foxBMS comes with foxConda, which is a graphic interface for configurations, it is not available for developers to add further features to the system. In the following, I will go through the step to get foxBMS running on a free IDE for embedded systems - Eclipse. There are many others IDE that we can use, such as Keil, or Visual Studio but they are either restricted or not free. So, the reason to use Eclipse is clear: developers have a free, open IDE and compatible with foxConda.&lt;/p&gt;
 
 &lt;p&gt;Requirements:&lt;/p&gt;</content><author><name></name></author><summary type="html">Although the foxBMS comes with foxConda, which is a graphic interface for configurations, it is not available for developers to add further features to the system. In the following, I will go through the step to get foxBMS running on a free IDE for embedded systems - Eclipse. There are many others IDE that we can use, such as Keil, or Visual Studio but they are either restricted or not free. So, the reason to use Eclipse is clear: developers have a free, open IDE and compatible with foxConda.</summary></entry><entry><title type="html">Bring power to life!</title><link href="http://localhost:4000/Hello-World/" rel="alternate" type="text/html" title="Bring power to life!" /><published>2014-03-03T00:00:00+01:00</published><updated>2014-03-03T00:00:00+01:00</updated><id>http://localhost:4000/Hello-World</id><content type="html" xml:base="http://localhost:4000/Hello-World/">&lt;p&gt;Open discussion about Battery Management System&lt;/p&gt;
 

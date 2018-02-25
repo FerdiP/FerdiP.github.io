@@ -70,7 +70,7 @@
 <p>3/ A running foxBMS project on Eclipse. Debugging with Eclipse is not important, because I got problems while using Eclipse under Debug mode. So, it must only compile and generate “.hex” file.</p>
 
 <h2 id="getting-start">[Getting Start]</h2>
-<p>The foxBMS communicates with SD card through SPI6 perripheral, which is also shared for EEPROM module. Therefore, each time reading and writing to SD card, users must check whether the EEPROM is deployed or not. Moreover, the SD Card is by default not deployed by the program, i.e, not powered. An output low on SDCARD_SUPPLY_CONTROL will let the card turn on for functions.</p>
+<p>The foxBMS communicates with SD card through SPI6 perripheral, which is also shared for EEPROM module. Therefore, each time reading and writing to SD card, users must check whether the EEPROM is deployed or not. Moreover, the SD Card is by default not deployed by the program, i.e, not powered. An output low on SDCARD_SUPPLY_CONTROL lets the card turn on for functions.</p>
 
 <p><img src="../images/2017-12-24-sd-card-with-foxbms/SD_Card_Schematic.png" alt="Fig1" class="img-responsive" />
 <em>Figure 1: Connections at SD Card module on BMS Extension board.</em></p>
@@ -102,8 +102,146 @@
 
 <p>“#define FF_FS_LOCK	10”: Allow us to open upto 10 files simutaneously.</p>
 
-<p>4/</p>
+<p>4/ Since <a href="http://elm-chan.org/fsw/ff/00index_e.html">FatFs</a> is “completely separated from the disk I/O layer”, it does not include the SPI communication, which allow the primary MCU to read or write, bit per bit, to the card. The object in this step is, therefore, to implement such this low-level layer, in <strong>diskio.c</strong> file. I prefer to write my own functions, because the given sample uses MCU’s Timer taking care of the delay, but actually, I do not have any timer left.</p>
+
+<p>Let’s talk about the structure of <strong>diskio.c</strong> for a better understanding. There are five critical functions that must always exist:</p>
+
+<p>DSTATUS disk_initialize (BYTE pdrv);</p>
+
+<p>DSTATUS disk_status (BYTE pdrv);</p>
+
+<p>DRESULT disk_read (BYTE pdrv, BYTE* buff, DWORD sector, UINT count);</p>
+
+<p>DRESULT disk_write (BYTE pdrv, const BYTE* buff, DWORD sector, UINT count);</p>
+
+<p>DRESULT disk_ioctl (BYTE pdrv, BYTE cmd, void* buff);</p>
+
+<p>Rest of the file are some deffinitions and static functions.</p>
+
+<p>I will start writing with a blank <strong>diskio.c</strong>. Firstly, I need some headers and deffinitions.</p>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>#include "general.h"
+#include "uart.h"
+#include "spi_cfg.h"
+#include "diskio.h"		/* FatFs lower layer API */
+#include "ff.h"
+#include "string.h"
+
+
+/* Definitions of physical drive number for each media */
+#define ATA		0
+#define USB		1
+#define SDRAM      	2
+#define SPI_FLASH  	3
+
+/* MMC/SD command */
+#define CMD0	(0)			/* GO_IDLE_STATE */
+#define CMD1	(1)			/* SEND_OP_COND (MMC) */
+#define	ACMD41	(0x80+41)	/* SEND_OP_COND (SDC) */
+#define CMD8	(8)			/* SEND_IF_COND */
+#define CMD9	(9)			/* SEND_CSD */
+#define CMD10	(10)		/* SEND_CID */
+#define CMD12	(12)		/* STOP_TRANSMISSION */
+#define ACMD13	(0x80+13)	/* SD_STATUS (SDC) */
+#define CMD16	(16)		/* SET_BLOCKLEN */
+#define CMD17	(17)		/* READ_SINGLE_BLOCK */
+#define CMD18	(18)		/* READ_MULTIPLE_BLOCK */
+#define CMD23	(23)		/* SET_BLOCK_COUNT (MMC) */
+#define	ACMD23	(0x80+23)	/* SET_WR_BLK_ERASE_COUNT (SDC) */
+#define CMD24	(24)		/* WRITE_BLOCK */
+#define CMD25	(25)		/* WRITE_MULTIPLE_BLOCK */
+#define CMD32	(32)		/* ERASE_ER_BLK_START */
+#define CMD33	(33)		/* ERASE_ER_BLK_END */
+#define CMD38	(38)		/* ERASE */
+#define CMD55	(55)		/* APP_CMD */
+#define CMD58	(58)		/* READ_OCR */
+
+/* Declare private variables */
+static volatile DSTATUS stt = STA_NOINIT;
+
+static BYTE CardType;			/* Card type flags */
+
+uint8_t dumm=0xFF;
+</code></pre></div></div>
+
+<p>Next, checking the power supply to SD card and SPI is free from EEPROM or not.</p>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>static uint8_t SD_Enabled(void) {
+	if(IO_ReadPin(IO_PIN_MCU_0_SDCARD_SUPPLY_CONTROL)==GPIO_PIN_RESET) return 1;				//Return 1 if pin is low, meaning that sd card is powered.
+	else return 0;
+}
+
+static uint8_t SPI_free(void){
+	if(IO_ReadPin(IO_PIN_MCU_0_DATA_STORAGE_EEPROM_SPI_NSS)==GPIO_PIN_RESET) return 0;				//Return 0 = "not ready" if CS for EEPROM is low
+	else return 1;
+}
+</code></pre></div></div>
+
+<p>Chip Select(CS) is of course needed.</p>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>/* Set CS Pin low or high */
+static void CS_LOW(void){
+	IO_WritePin(IO_PIN_MCU_0_DATA_STORAGE_SCCARD_SPI_NSS,IO_PIN_RESET);
+}
+static void CS_HIGH(void){
+	IO_WritePin(IO_PIN_MCU_0_DATA_STORAGE_SCCARD_SPI_NSS,IO_PIN_SET);
+}
+</code></pre></div></div>
+
+<p>The first brick to build “Fat_fox” home:</p>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>/* Send single byte */
+static BYTE xchg_spi(BYTE Byte){
+	BYTE receivedbyte = 0;
+	if(HAL_SPI_TransmitReceive(&amp;spi_devices[1],(uint8_t*) &amp;Byte,(uint8_t*) &amp;receivedbyte,1,0x1000)!=HAL_OK)
+	{
+		HAL_UART_Transmit(&amp;uart_cfg[0],(uint8_t *)"error_txrx\r\n",12,0x100);
+	}
+	return receivedbyte;
+}
+</code></pre></div></div>
+
+<p>…and the first walls:</p>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>/* Receive multiple byte */
+static void rcvr_spi_multi (
+		BYTE *buff,		/* Pointer to data buffer */
+		UINT btr		/* Number of bytes to receive (even number) */
+)
+{
+	/* Read multiple bytes, send 0xFF as dummy */
+	int cnt;
+	for (cnt=0;cnt&lt;btr;cnt++) buff[cnt] = xchg_spi(0xFF);
+}
+
+#if _USE_WRITE
+/* Send multiple byte */
+static void xmit_spi_multi (
+		const BYTE *buff,	/* Pointer to the data */
+		UINT btx			/* Number of bytes to send (even number) */
+)
+{
+	/* Write multiple bytes */
+	HAL_SPI_Transmit(&amp;spi_devices[1],(uint8_t *)buff,btx,0x100);
+}
+#endif
+</code></pre></div></div>
+
+<p>The next important functions, which I believe that you can programm yourself, are as below. In this blog, I would not post them all because of Copy Right issue that I mentioned above. I would like to give some hints and wish you success.</p>
+<ul>
+  <li>Instead of using Timer, I just declared a variable, said “timer”, to a certain value, and decreased it to create a loop or delay.</li>
+  <li><strong>deselect</strong> and <strong>select</strong> might be used by orther library, so I recommend to rename to <strong>SDdeselect</strong> and <strong>SDselect</strong>.</li>
+</ul>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>static void deselect(void); 
+
+static int select(void);
+
+static int rcvr_datablock (	BYTE *buff,  UINT btr);
+
+static int xmit_datablock (	const BYTE *buff,		BYTE token);
+
+static BYTE send_cmd (	BYTE cmd,	DWORD arg	);
+</code></pre></div></div>
+
 <h2 id="running">[Running]</h2>
+
+<h3 id="references">References</h3>
 
   </div>
 
