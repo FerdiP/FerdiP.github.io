@@ -1,24 +1,50 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.6.2">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2018-02-24T14:51:21+01:00</updated><id>http://localhost:4000/</id><title type="html">Duc-Duy Phan</title><subtitle>Embedded Systems Engineering Student</subtitle><entry><title type="html">SD Card with foxBMS</title><link href="http://localhost:4000/sd-card-with-foxbms/" rel="alternate" type="text/html" title="SD Card with foxBMS" /><published>2017-12-24T00:00:00+01:00</published><updated>2017-12-24T00:00:00+01:00</updated><id>http://localhost:4000/sd-card-with-foxbms</id><content type="html" xml:base="http://localhost:4000/sd-card-with-foxbms/">&lt;p&gt;An SD Card female connector is available on foxBMS Extension board. It is therefore, available for us to store and read some data under, such as, text files. Let’s begin this task by several preparations!&lt;/p&gt;
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="3.6.2">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2018-02-25T20:24:15+01:00</updated><id>http://localhost:4000/</id><title type="html">Duc-Duy Phan</title><subtitle>Embedded Systems Engineering Student</subtitle><entry><title type="html">SD Card with foxBMS</title><link href="http://localhost:4000/sd-card-with-foxbms/" rel="alternate" type="text/html" title="SD Card with foxBMS" /><published>2017-12-24T00:00:00+01:00</published><updated>2017-12-24T00:00:00+01:00</updated><id>http://localhost:4000/sd-card-with-foxbms</id><content type="html" xml:base="http://localhost:4000/sd-card-with-foxbms/">&lt;p&gt;An SD Card female connector is available on foxBMS Extension board. It is therefore, available for us to store and read some data under, such as, text files, csv files. In the range of this post, I firstly programm the SD card as a &lt;strong&gt;module&lt;/strong&gt; in src for primary MCU. Then, in the second part, I will create a task to write and read data in text file. Let’s begin this task by several preparations!&lt;/p&gt;
 
-&lt;h2 id=&quot;notices&quot;&gt;[Notices]&lt;/h2&gt;
+&lt;h3 id=&quot;notices&quot;&gt;Notices&lt;/h3&gt;
 &lt;p&gt;The version of foxBMS’s embedded software I am using is NOT the newest version-1.0.0. There might needed changes, but I hope that the following jobs can be integrated easily into the newest software version.&lt;/p&gt;
 
 &lt;h2 id=&quot;requirements&quot;&gt;[Requirements]&lt;/h2&gt;
 &lt;p&gt;1/ A SD Card, which is formated under FAT. You can do it by Quick Format in Windows.&lt;/p&gt;
 
-&lt;p&gt;2/ &lt;a href=&quot;http://elm-chan.org/fsw/ff/00index_e.html&quot;&gt;FatFs&lt;/a&gt; Module by Chan. I used FatFs R0.13a. For a easier setup, I recommend to download the “FatFs sample projects for various platforms” (scroll down to the end of the page and click to download!).&lt;/p&gt;
+&lt;p&gt;2/ &lt;a href=&quot;http://elm-chan.org/fsw/ff/00index_e.html&quot;&gt;FatFs&lt;/a&gt; Module by Chan. I used FatFs R0.13a. For a easier setup, I recommend to download the “FatFs sample projects for various platforms” (scroll down to the end of the FatFs page and download!).&lt;/p&gt;
 
 &lt;p&gt;3/ A running foxBMS project on Eclipse. Debugging with Eclipse is not important, because I got problems while using Eclipse under Debug mode. So, it must only compile and generate “.hex” file.&lt;/p&gt;
 
 &lt;h2 id=&quot;getting-start&quot;&gt;[Getting Start]&lt;/h2&gt;
-&lt;p&gt;&lt;img src=&quot;https://github.com/FerdiP/FerdiP.github.io/blob/master/images/2017-12-24-sd-card-with-foxbms/SD_Card_Schematic.png&quot; alt=&quot;Fig1: Connections at SD Card module on BMS Extension board&quot; /&gt;&lt;/p&gt;
+&lt;p&gt;The foxBMS communicates with SD card through SPI6 perripheral, which is also shared for EEPROM module. Therefore, each time reading and writing to SD card, users must check whether the EEPROM is deployed or not. Moreover, the SD Card is by default not deployed by the program, i.e, not powered. An output low on SDCARD_SUPPLY_CONTROL will let the card turn on for functions.&lt;/p&gt;
 
+&lt;p&gt;&lt;img src=&quot;../images/2017-12-24-sd-card-with-foxbms/SD_Card_Schematic.png&quot; alt=&quot;Fig1&quot; class=&quot;img-responsive&quot; /&gt;
+&lt;em&gt;Figure 1: Connections at SD Card module on BMS Extension board.&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;../images/2017-12-24-sd-card-with-foxbms/SD_Card_Supply_Control.png&quot; alt=&quot;Fig2&quot; /&gt;
+&lt;em&gt;Figure 2: SD card”s power supply control.&lt;/em&gt;&lt;/p&gt;
 &lt;h2 id=&quot;programming&quot;&gt;[Programming]&lt;/h2&gt;
 &lt;p&gt;1/ Naviagate to “../foxBMS_primary/src/module/” . Create a new folder: sdcard.&lt;/p&gt;
 
-&lt;p&gt;2/ Remember that we downloaded the “FatFs sample projects for various platforms”? For the task I am doing, I need to copy those files: “ff.h”, “ff.c”, “ffconf.h”, “ffunicode.c”, “integer.h”, “diskio.h”, “mmc_stm32f1.c”. For anyone that are familiar to FatFs, the file “mmc_stm32f1.c” has the same function as “diskio.c”. Therefore, I prefer to rename “mmc_stm32f1.c” into “diskio.c”.&lt;/p&gt;
+&lt;p&gt;2/ Remember that we downloaded the “FatFs sample projects for various platforms”? For the task I am doing, I need to copy those files: &lt;strong&gt;ff.h, ff.c, ffconf.h, ffunicode.c, integer.h, diskio.h, mmc_stm32f1.c&lt;/strong&gt; in the sample for STM32 folder. For anyone that are familiar to FatFs, the file “mmc_stm32f1.c” has the same function as “diskio.c”. Therefore, I prefer to rename &lt;strong&gt;mmc_stm32f1.c&lt;/strong&gt; into &lt;strong&gt;diskio.c&lt;/strong&gt;.&lt;/p&gt;
 
-&lt;h2 id=&quot;running&quot;&gt;[Running]&lt;/h2&gt;</content><author><name></name></author><summary type="html">An SD Card female connector is available on foxBMS Extension board. It is therefore, available for us to store and read some data under, such as, text files. Let’s begin this task by several preparations!</summary></entry><entry><title type="html">Setting up BMS Primary on Eclipse C/C++</title><link href="http://localhost:4000/setting-up-bms-primary-on-eclipse-c-c/" rel="alternate" type="text/html" title="Setting up BMS Primary on Eclipse C/C++" /><published>2017-12-23T00:00:00+01:00</published><updated>2017-12-23T00:00:00+01:00</updated><id>http://localhost:4000/setting-up-bms-primary-on-eclipse-c-c</id><content type="html" xml:base="http://localhost:4000/setting-up-bms-primary-on-eclipse-c-c/">&lt;p&gt;Although the foxBMS comes with foxConda, which is a graphic interface for configurations, it is not available for developers to add further features to the system. In the following, I will go through the step to get foxBMS running on a free IDE for embedded systems - Eclipse. There are many others IDE that we can use, such as Keil, or Visual Studio but they are either restricted or not free. So, the reason to use Eclipse is clear: developers have a free, open IDE and compatible with foxConda.&lt;/p&gt;
+&lt;p&gt;3/ Let’s go through the &lt;strong&gt;ffconf.h&lt;/strong&gt;, I will only mention the changes in comparision to the original sample.&lt;/p&gt;
+
+&lt;p&gt;“#define FF_USE_STRFUNC 2”: Useful if we wanto read lines in files.&lt;/p&gt;
+
+&lt;p&gt;“#define FF_USE_FIND 1”&lt;/p&gt;
+
+&lt;p&gt;“#define FF_USE_FASTSEEK 1”&lt;/p&gt;
+
+&lt;p&gt;“#define FF_USE_FORWARD 1”&lt;/p&gt;
+
+&lt;p&gt;“#define FF_CODE_PAGE 850”&lt;/p&gt;
+
+&lt;p&gt;“#define  FF_USE_LFN 2”: Enable Long File Name instead of &lt;strong&gt;8.3&lt;/strong&gt; format. As the name says, it allows FatFs to read file names, which are longer than 8 characters.&lt;/p&gt;
+
+&lt;p&gt;“#define	FF_LFN_UNICODE	0”&lt;/p&gt;
+
+&lt;p&gt;“#define FF_VOLUMES 1”, “#define FF_STR_VOLUME_ID 1”, “#define FF_VOLUME_STRS		“SD”: those three configurations come together, meaning that we use only SD card and prefer to use the name “SD:” for the root directory on SD card while reading and writing.&lt;/p&gt;
+
+&lt;p&gt;“#define FF_FS_LOCK	10”: Allow us to open upto 10 files simutaneously.&lt;/p&gt;
+
+&lt;p&gt;4/&lt;/p&gt;
+&lt;h2 id=&quot;running&quot;&gt;[Running]&lt;/h2&gt;</content><author><name></name></author><summary type="html">An SD Card female connector is available on foxBMS Extension board. It is therefore, available for us to store and read some data under, such as, text files, csv files. In the range of this post, I firstly programm the SD card as a module in src for primary MCU. Then, in the second part, I will create a task to write and read data in text file. Let’s begin this task by several preparations!</summary></entry><entry><title type="html">Setting up BMS Primary on Eclipse C/C++</title><link href="http://localhost:4000/setting-up-bms-primary-on-eclipse-c-c/" rel="alternate" type="text/html" title="Setting up BMS Primary on Eclipse C/C++" /><published>2017-12-23T00:00:00+01:00</published><updated>2017-12-23T00:00:00+01:00</updated><id>http://localhost:4000/setting-up-bms-primary-on-eclipse-c-c</id><content type="html" xml:base="http://localhost:4000/setting-up-bms-primary-on-eclipse-c-c/">&lt;p&gt;Although the foxBMS comes with foxConda, which is a graphic interface for configurations, it is not available for developers to add further features to the system. In the following, I will go through the step to get foxBMS running on a free IDE for embedded systems - Eclipse. There are many others IDE that we can use, such as Keil, or Visual Studio but they are either restricted or not free. So, the reason to use Eclipse is clear: developers have a free, open IDE and compatible with foxConda.&lt;/p&gt;
 
 &lt;p&gt;Requirements:&lt;/p&gt;</content><author><name></name></author><summary type="html">Although the foxBMS comes with foxConda, which is a graphic interface for configurations, it is not available for developers to add further features to the system. In the following, I will go through the step to get foxBMS running on a free IDE for embedded systems - Eclipse. There are many others IDE that we can use, such as Keil, or Visual Studio but they are either restricted or not free. So, the reason to use Eclipse is clear: developers have a free, open IDE and compatible with foxConda.</summary></entry><entry><title type="html">Bring power to life!</title><link href="http://localhost:4000/Hello-World/" rel="alternate" type="text/html" title="Bring power to life!" /><published>2014-03-03T00:00:00+01:00</published><updated>2014-03-03T00:00:00+01:00</updated><id>http://localhost:4000/Hello-World</id><content type="html" xml:base="http://localhost:4000/Hello-World/">&lt;p&gt;Open discussion about Battery Management System&lt;/p&gt;
 
