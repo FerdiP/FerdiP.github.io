@@ -1,6 +1,7 @@
 ---
 title: SD Card with foxBMS
 layout: post
+comments: true
 ---
 
 An SD Card female connector is available on foxBMS Extension board. It is therefore, available for us to store and read some data under, such as, text files, csv files. In the range of this post, I firstly programm the SD card as a **module** in src for primary MCU. Then, in the second part, I will create a task to write and read data in text file. Let's begin this task by several preparations!
@@ -173,7 +174,7 @@ static void xmit_spi_multi (
 #endif
 ```
 
-The next important functions, which I believe that you can programm yourself, are as below. In this blog, I would not post them all because of Copy Right issue that I mentioned above. I would like to give some hints and wish you success.
+The next important functions, which I believe that you can programm yourself, are named as below. In this blog, I would not post them all because of Copy Right issues. I would like to give some hints and wish you success.
 *  Instead of using Timer, I just declared a variable, said "timer", to a certain value, and decreased it to create a loop or delay.
 *  **deselect** and **select** might be used by orther library, so I recommend to rename to **SDdeselect** and **SDselect**.
 
@@ -190,5 +191,42 @@ static BYTE send_cmd (	BYTE cmd,	DWORD arg	);
 ```
 
 ## [Running]
+I use the following pieces of code to read all lines in a text file:
 
-### References
+```
+FATFS FatFs;
+FIL File;
+FRESULT res;
+IO_PIN_STATE_e state_EEPROM_CS;
+
+state_EEPROM_CS=IO_ReadPin(IO_PIN_MCU_0_DATA_STORAGE_EEPROM_SPI_NSS);
+IO_WritePin(IO_PIN_MCU_0_SDCARD_SUPPLY_CONTROL,IO_PIN_RESET);
+IO_WritePin(IO_PIN_MCU_0_DATA_STORAGE_EEPROM_SPI_NSS,IO_PIN_SET);
+IO_WritePin(IO_PIN_MCU_0_DATA_STORAGE_SCCARD_SPI_NSS,IO_PIN_SET);
+
+res = fmount(&FatFs, "0:", 1);
+if ( res == FR_OK) {
+	DEBUG_PRINTF((uint8_t* )"Mount SDCard ok\n");
+	res= fopen(&File, "Sample.txt", FA_READ);
+
+	if (res== FR_OK) {
+	//LineIDX Starts from 1
+			char VChar ;
+			WCHAR CharBuffer[10];
+
+			while (feof(&File) == 0)
+			{
+				VChar = fgets((char)CharBuffer, 20, &VoltFile);
+				DEBUG_PRINTF((uint8t )VChar)
+			}
+			fclose(&File);
+		}
+		else{
+			DEBUG_PRINTF((uint8t )"open fail!");
+	}
+		fmount(0,"0:", 1);
+}else{
+	DEBUG_PRINTF((uint8t )"mount fail!");
+}
+IO_WritePin(IO_PIN_MCU_0_DATA_STORAGE_EEPROM_SPI_NSS,state_EEPROM_CS);
+```

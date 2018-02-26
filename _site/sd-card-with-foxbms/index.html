@@ -222,7 +222,7 @@ static void xmit_spi_multi (
 #endif
 </code></pre></div></div>
 
-<p>The next important functions, which I believe that you can programm yourself, are as below. In this blog, I would not post them all because of Copy Right issue that I mentioned above. I would like to give some hints and wish you success.</p>
+<p>The next important functions, which I believe that you can programm yourself, are named as below. In this blog, I would not post them all because of Copy Right issues. I would like to give some hints and wish you success.</p>
 <ul>
   <li>Instead of using Timer, I just declared a variable, said “timer”, to a certain value, and decreased it to create a loop or delay.</li>
   <li><strong>deselect</strong> and <strong>select</strong> might be used by orther library, so I recommend to rename to <strong>SDdeselect</strong> and <strong>SDselect</strong>.</li>
@@ -240,8 +240,44 @@ static BYTE send_cmd (	BYTE cmd,	DWORD arg	);
 </code></pre></div></div>
 
 <h2 id="running">[Running]</h2>
+<p>I use the following pieces of code to read all lines in a text file:</p>
 
-<h3 id="references">References</h3>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>FATFS FatFs;
+FIL File;
+FRESULT res;
+IO_PIN_STATE_e state_EEPROM_CS;
+
+state_EEPROM_CS=IO_ReadPin(IO_PIN_MCU_0_DATA_STORAGE_EEPROM_SPI_NSS);
+IO_WritePin(IO_PIN_MCU_0_SDCARD_SUPPLY_CONTROL,IO_PIN_RESET);
+IO_WritePin(IO_PIN_MCU_0_DATA_STORAGE_EEPROM_SPI_NSS,IO_PIN_SET);
+IO_WritePin(IO_PIN_MCU_0_DATA_STORAGE_SCCARD_SPI_NSS,IO_PIN_SET);
+
+res = fmount(&amp;FatFs, "0:", 1);
+if ( res == FR_OK) {
+	DEBUG_PRINTF((uint8_t* )"Mount SDCard ok\n");
+	res= fopen(&amp;File, "Sample.txt", FA_READ);
+
+	if (res== FR_OK) {
+	//LineIDX Starts from 1
+			char VChar ;
+			WCHAR CharBuffer[10];
+
+			while (feof(&amp;File) == 0)
+			{
+				VChar = fgets((char)CharBuffer, 20, &amp;VoltFile);
+				DEBUG_PRINTF((uint8t )VChar)
+			}
+			fclose(&amp;File);
+		}
+		else{
+			DEBUG_PRINTF((uint8t )"open fail!");
+	}
+		fmount(0,"0:", 1);
+}else{
+	DEBUG_PRINTF((uint8t )"mount fail!");
+}
+IO_WritePin(IO_PIN_MCU_0_DATA_STORAGE_EEPROM_SPI_NSS,state_EEPROM_CS);
+</code></pre></div></div>
 
   </div>
 
@@ -250,6 +286,7 @@ static BYTE send_cmd (	BYTE cmd,	DWORD arg	);
   </div>
 
   
+
 </article>
 
     </div>
