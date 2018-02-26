@@ -5,9 +5,9 @@ avatar: https://avatars2.githubusercontent.com/u/34359663?s=400&v=4
 footer-links:
   email: ferdinand.phan.ee@gmail.com
   github: FerdiP
-  linkedin: 'https://www.linkedin.com/in/duc-duy-phan-8b4087111/'
+  linkedin: 'www.linkedin.com/in/duc-duy-phan-8b4087111'
   stackoverflow: null
-disqus: null
+disqus: shortname: https-ferdip-github-io
 google_analytics: null
 url: "https://ferdip.github.io"
 baseurl: ''
