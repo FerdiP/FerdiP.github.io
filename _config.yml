@@ -9,7 +9,7 @@ footer-links:
   stackoverflow: null
 disqus: null
 google_analytics: null
-url: null
+url: "https://ferdip.github.io"
 baseurl: ''
 permalink: '/:title/'
 version: v1.2.0
